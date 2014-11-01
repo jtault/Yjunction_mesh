@@ -1,0 +1,31 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile {
+    version     2.2;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      inletDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+center (0. 5. 0.); // The center of the inlet patch.
+patch inlet; // The name of the inlet patch.
+
+n 200; // The number of iterations when approximating the infinite sum.
+
+u_mean 1.; // The average inlet velocity.
+
+width 1.; // The dimension of the full channel in the x-direction.
+depth 1.; // The dimension of the full channel in the z-direction.
+// The area of the channel cross-section in the mesh.  May differ from width *
+// depth if the mesh only covers part of the channel, e.g., if it only contains
+// half the channel.
+area 1.;
+
+// ************************************************************************* //

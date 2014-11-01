@@ -1,0 +1,15 @@
+* Synopsis
+
+  This repository contains files for T-junction mesh generation and case setup.
+
+* Mesh generation
+
+  To generate the mesh, run "make" from the root directory.  Then, set the inlet
+  boundary condition using the setInletVelocity application and the
+  constant/inletDict dictionary.  The parameters of the mesh can be edited in
+  constant/polyMesh/generate_blockMeshDict.
+
+* Utilities
+
+  simpleGrading.py is a Python3 utility for computing a cell dimension in a
+  simple-graded block.

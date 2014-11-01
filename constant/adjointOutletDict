@@ -1,0 +1,22 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile {
+    version 2.2;
+    format ascii;
+    class dictionary;
+    location "constant";
+    object inletDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+adjoint U_ap; // Name of the adjoint velocity field.
+equilibrium U; // Name of the equilibrium velocity field.
+patch outlet; // Name of the outlet patch.
+Re 590; // Reynolds number.
+
+// ************************************************************************* //

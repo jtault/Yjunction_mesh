@@ -1,0 +1,107 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile {
+    version 2.2;
+    format ascii;
+    class dictionary;
+    object fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers {
+    p {
+        solver GAMG;
+        tolerance 1e-6;
+        relTol 0.01;
+        smoother GaussSeidel;
+        nPreSweeps 0;
+        nPostSweeps 2;
+        cacheAgglomeration on;
+        agglomerator faceAreaPair;
+        nCellsInCoarsestLevel 10;
+        mergeLevels 1;
+    };
+    pFinal {
+        solver GAMG;
+        tolerance 1e-06;
+        relTol 0;
+        smoother GaussSeidel;
+        cacheAgglomeration true;
+        nCellsInCoarsestLevel 10;
+        agglomerator faceAreaPair;
+        mergeLevels 1;
+    }
+    p_p {
+        solver GAMG;
+        tolerance 1e-6;
+        relTol 0.01;
+        smoother GaussSeidel;
+        nPreSweeps 0;
+        nPostSweeps 2;
+        cacheAgglomeration on;
+        agglomerator faceAreaPair;
+        nCellsInCoarsestLevel 10;
+        mergeLevels 1;
+    };
+    p_ap {
+        solver GAMG;
+        tolerance 1e-6;
+        relTol 0.01;
+        smoother GaussSeidel;
+        nPreSweeps 0;
+        nPostSweeps 2;
+        cacheAgglomeration on;
+        agglomerator faceAreaPair;
+        nCellsInCoarsestLevel 10;
+        mergeLevels 1;
+    };
+
+    U {
+        solver smoothSolver;
+        smoother GaussSeidel;
+        tolerance 1e-6;
+        relTol 0.01;
+        nSweeps 1;
+    };
+    UFinal {
+        solver PBiCG;
+        preconditioner DILU;
+        tolerance 1e-06;
+        relTol 0;
+    }
+    U_p {
+        solver smoothSolver;
+        smoother GaussSeidel;
+        tolerance 1e-6;
+        relTol 0.01;
+        nSweeps 1;
+    };
+    U_ap {
+        solver smoothSolver;
+        smoother GaussSeidel;
+        tolerance 1e-6;
+        relTol 0.01;
+        nSweeps 1;
+    };
+}
+
+PISO {
+    nCorrectors 2;
+    nNonOrthogonalCorrectors 1;
+
+    pRefCell 0;
+    pRefValue 0;
+
+    p_pRefCell 0;
+    p_pRefValue 0;
+
+    p_apRefCell 0;
+    p_apRefValue 0;
+}
+
+// ************************************************************************* //

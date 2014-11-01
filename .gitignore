@@ -1,0 +1,14 @@
+*~
+.#*
+VTK
+\#*
+__pycache__
+blockMeshDict
+boundary
+cellZones
+faceZones
+faces
+neighbour
+owner
+pointZones
+points

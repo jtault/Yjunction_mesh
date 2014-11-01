@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+readonly refine="refineWallLayer -overwrite"
+readonly nRefine=3 # Number of times to refine the front and back.
+
+$refine bottomWall 0.4
+$refine topWall 0.5
+$refine sideWall 0.4

@@ -1,0 +1,283 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Print the usage information.
+function usage {
+    cat <<USAGE
+
+NAME
+     $program -- generate a blockMeshDict for the T-junction geometry.
+
+SYNOPSIS
+     $program
+     $program -help
+
+DESCRIPTION
+     This script generates a blockMeshDict and prints it to the standard output.
+     To make the grid finer or coarser, edit the "refine" variable inside the
+     script.
+
+     When the -help option is given, this message is printed and the program
+     exits.
+
+USAGE
+}
+
+function main {
+    readonly program=${0##*/}
+
+    [ "$1" = "-help" ] && usage && exit 0
+    [ $# != 0 ] && usage 1>&2 && exit 1
+
+    define_vars
+    print_dict
+}
+
+# Assign all the coordinates and lengths in the T-junction geometry.
+function define_vars {
+
+    # User supplied variables.
+    readonly refine=0.30 # Grid refinement factor in all 3 dimensions.
+    readonly angle=70 # Junction angle in degrees.
+    readonly in_w=0.5 # Inlet half-channel width.
+    readonly out_w=1. # Outlet channel width.
+    readonly in_l=5. # Inlet channel length.
+    readonly out_l=5. # Outlet channel length.
+    readonly d=0.5 # Channel half depth.
+    readonly r=0.5 # Radius.
+
+    # Extra variables.
+    readonly pi=$(calc "4. * a(1.)")
+    readonly alpha=$(calc "$pi / 2.0 - $angle * $pi / 180.")
+
+    # Arc center. y_1, y_2, and y_3 are temporary lengths used to calculate arc centers.
+    readonly center_x=$(calc "$in_w + $r")
+    readonly y_1=$(calc "$in_w * s($alpha) / c($alpha)")
+    readonly y_2=$(calc "$r * c((($pi / 2.) - $alpha) / 2.) / s((($pi / 2.) - $alpha) / 2.)")
+    readonly y_3=$(calc "sqrt($r * $r + $y_2 * $y_2)")
+    readonly center_y=$(calc "$out_w / c($alpha) + $y_1 + $y_2")
+
+    # Define specific coordinates.
+    readonly temp_x=$(calc "$in_w")
+    readonly temp_y=$(calc "$out_w / c($alpha) + $y_1")
+    readonly C1_y=$(calc "$out_l * s($alpha)")
+    readonly C1_x=$(calc "$out_l * c($alpha)")
+    readonly C2_x=$(calc "$C1_x - $out_w * s($alpha)")
+    readonly C2_y=$(calc "$C1_y + $out_w * c($alpha)")
+    readonly D2_y=$(calc "center_y")
+    readonly B2_x=$(calc "$temp_x + $r * c((($pi / 2.) - $alpha) / 2.) / s((($pi / 2.) - $alpha) / 2.) * c($alpha)")
+    readonly B2_y=$(calc "$temp_y + $r * c((($pi / 2.) - $alpha) / 2.) / s((($pi / 2.) - $alpha) / 2.) * s($alpha)")
+
+    # Arc quarter-points.
+    readonly arc1_x=$(calc "$center_x - $r * c(($pi / 2.0 + $alpha) / 4.)")
+    readonly arc1_y=$(calc "$center_y - $r * s(($pi / 2.0 + $alpha) / 4.)")
+    readonly arc2_x=$(calc "$temp_x + ($y_3 - $r) * s((($pi / 2.) - $alpha) / 2.)")
+    readonly arc2_y=$(calc "$temp_y + ($y_3 - $r) * c((($pi / 2.) - $alpha) / 2.)")
+    readonly arc3_x=$(calc "$center_x - $r * c(3.0 * ($pi / 2.0 + $alpha) / 4.0)")
+    readonly arc3_y=$(calc "$center_y - $r * s(3.0 * ($pi / 2.0 + $alpha) / 4.0)")
+
+    readonly A1_y=$(calc "$arc2_x * s($alpha) / c($alpha)")
+    readonly B1_y=$(calc "$B2_x * s($alpha) / c($alpha)")
+
+    # Number of cells in each block.
+    readonly n_in=$(round "64 * $refine") # across half-channel A.
+    readonly n_out=$(round "103 * $refine") # across channel B.
+    readonly n_c=$(round "166 * $refine") # horizontally in block c.
+    readonly n_e=$(round "166 * $refine") # vertically in block e.
+    readonly n_H=$(round "46 * $refine") # across channel half-depth.
+    readonly n_d=$(round "35 * $refine") # vertically in block d.
+    readonly n_b=$(round "35 * $refine") # horizontally in block b.
+
+    # Simple grading factors.
+    readonly in_grade=0.75 # across half-channel A.
+    readonly out_grade=2. # across channel B.
+    readonly b_grade=1. # in block b.
+    readonly c_grade=2. # in block c.
+    readonly d_grade=1. # in block d.
+    readonly e_grade=2. # in block e.
+    readonly H_grade=0.5 # across channel half-depth.
+}
+
+# Print the blockMeshDict to the standard output.
+function print_dict {
+    cat <<EOF
+/*--------------------------------*- C++ -*----------------------------------*\\
+| =========                 |                                                 |
+| \\\\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\\\    /   O peration     | Version:  2.2.0                                 |
+|   \\\\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\\\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile {
+    version 2.2;
+    format ascii;
+    class dictionary;
+    object blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+vertices (
+EOF
+
+    vertex_ind=0
+
+    make_vertex O "(0. 0. 0.)"
+    make_vertex OT "(0. 0. $d)"
+    make_vertex A1 "($arc2_x $A1_y 0.)"
+    make_vertex A1T "($arc2_x $A1_y $d)"
+    make_vertex A2 "($arc2_x $arc2_y 0.)"
+    make_vertex A2T "($arc2_x $arc2_y $d)"
+    make_vertex A3 "(0 $arc2_y 0.)"
+    make_vertex A3T "(0. $arc2_y $d)"
+    make_vertex B1 "($B2_x $B1_y 0.)"
+    make_vertex B1T "($B2_x $B1_y $d)"
+    make_vertex B2 "($B2_x $B2_y 0.)"
+    make_vertex B2T "($B2_x $B2_y $d)"
+    make_vertex C1 "($C1_x $C1_y 0.)"
+    make_vertex C1T "($C1_x $C1_y $d)"
+    make_vertex C2 "($C2_x $C2_y 0.)"
+    make_vertex C2T "($C2_x $C2_y $d)"
+    make_vertex D1 "(0. $center_y 0.)"
+    make_vertex D1T "(0. $center_y $d)"
+    make_vertex D2 "($in_w $center_y 0.)"
+    make_vertex D2T "($in_w $center_y $d)"
+    make_vertex E1 "(0. $in_l 0.)"
+    make_vertex E1T "(0. $in_l $d)"
+    make_vertex E2 "($in_w $in_l 0.)"
+    make_vertex E2T "($in_w $in_l $d)"
+
+    cat <<EOF
+);
+
+blocks (
+    // block a.
+    hex ($O $A1 $A2 $A3 $OT $A1T $A2T $A3T)
+    ($n_in $n_out $n_H)
+    simpleGrading ($in_grade $out_grade $H_grade)
+
+    // block b.
+    hex ($A1 $B1 $B2 $A2 $A1T $B1T $B2T $A2T)
+    ($n_b $n_out $n_H)
+    simpleGrading ($b_grade $out_grade $H_grade)
+
+    // block c.
+    hex ($B1 $C1 $C2 $B2 $B1T $C1T $C2T $B2T)
+    ($n_c $n_out $n_H)
+    simpleGrading ($c_grade $out_grade $H_grade)
+
+    // block d.
+    hex ($A3 $A2 $D2 $D1 $A3T $A2T $D2T $D1T)
+    ($n_in $n_d $n_H)
+    simpleGrading ($in_grade $d_grade $H_grade)
+
+    // block e.
+    hex ($D1 $D2 $E2 $E1 $D1T $D2T $E2T $E1T)
+    ($n_in $n_e $n_H)
+    simpleGrading ($in_grade $e_grade $H_grade)
+);
+
+// Create the quarter circles.
+edges (
+    arc $A2 $B2 ($arc3_x $arc3_y 0)
+    arc $A2T $B2T ($arc3_x $arc3_y $d)
+    arc $A2 $D2 ($arc1_x $arc1_y 0)
+    arc $A2T $D2T ($arc1_x $arc1_y $d)
+);
+
+boundary (
+    inlet {
+        type patch;
+        faces (
+            ($E1 $E2 $E2T $E1T)
+        );
+    }
+
+    outlet {
+        type patch;
+        faces (
+            ($C1 $C2 $C2T $C1T)
+        );
+    }
+
+    zSymmetryPlane {
+        type symmetryPlane;
+        faces (
+            ($O $A1 $A2 $A3)
+            ($A1 $B1 $B2 $A2)
+            ($B1 $C1 $C2 $B2)
+            ($A3 $A2 $D2 $D1)
+            ($D1 $D2 $E2 $E1)
+        );
+    }
+
+    sideWall {
+        type wall;
+        faces (
+            ($OT $A1T $A2T $A3T)
+            ($A1T $B1T $B2T $A2T)
+            ($B1T $C1T $C2T $B2T)
+            ($A3T $A2T $D2T $D1T)
+            ($D1T $D2T $E2T $E1T)
+        );
+    }
+
+    bottomWall {
+        type wall;
+        faces (
+            ($O $OT $A1T $A1)
+            ($A1 $A1T $B1T $B1)
+            ($B1 $B1T $C1T $C1)
+        );
+    }
+
+    topWall {
+        type wall;
+        faces (
+            ($D2 $E2 $E2T $D2T)
+            ($A2 $D2 $D2T $A2T)
+            ($B2 $A2 $A2T $B2T)
+            ($C2 $B2 $B2T $C2T)
+        );
+    }
+
+    xSymmetryPlane {
+        type symmetryPlane;
+        faces (
+            ($O $A3 $A3T $OT)
+            ($A3 $D1 $D1T $A3T)
+            ($D1 $E1 $E1T $D1T)
+        );
+    }
+);
+
+mergePatchPairs (
+);
+
+// ************************************************************************* //
+EOF
+}
+
+# make_vertex <name> <coord> assigns the incremented vertex counter to the
+# <name> variable.  It then echoes the vertex.
+function make_vertex {
+    [ $# != 2 ] && "Function usage: make_vertex name point" 1>&2 && exit 3
+
+    # Assign the vertex index to the vertex name.
+    eval "$1=\"$vertex_ind\""
+
+    echo "    $2 // $1 = $vertex_ind."
+    ((++vertex_ind))
+}
+
+# Do a calculation in bc.
+function calc {
+    echo "$1" | bc -l
+}
+
+# Do a calculation in bc, but also round the result to the nearest integer.
+function round {
+    printf '%.0f' $(calc "$1")
+}
+
+main "$@"
