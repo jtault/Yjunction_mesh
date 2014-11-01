@@ -2,39 +2,36 @@
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
 |  \\    /   O peration     | Version:  2.2.1                                 |
-|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
 FoamFile {
     version 2.2;
     format ascii;
-    class dictionary;
-    object controlDict;
+    class volScalarField;
+    object p_ap;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-application continuationFoam;
+dimensions [0 2 -2 0 0 0 0];
 
-startFrom startTime;
-startTime 0;
+internalField uniform 0;
 
-stopAt endTime;
-endTime 100.;
-
-deltaT 2.5e-3;
-
-writeControl runTime;
-writeInterval 5.;
-purgeWrite 0;
-
-writeFormat binary;
-writePrecision 16;
-writeCompression uncompressed;
-
-timeFormat general;
-timePrecision 6;
-
-runTimeModifiable no;
-adjustTimeStep no;
-
-// ************************************************************************* //
+boundaryField {
+    inlet {
+        type zeroGradient;
+    }
+    outlet {
+        type fixedValue;
+        value uniform 0;
+    }
+    sideWall {
+        type zeroGradient;
+    }
+    bottomWall {
+        type zeroGradient;
+    }
+    topWall {
+        type zeroGradient;
+    }
+}

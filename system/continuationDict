@@ -1,0 +1,45 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile {
+    version 2.3;
+    format ascii;
+    class dictionary;
+    location "system";
+    object continuationDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+nu_0 nu_0 [ 0 2 -1 0 0 0 0 ] 0.0017857142857142857;
+Re_0 560;
+Re_f 560;
+dReMax 10.;
+dReMin 1.;
+
+nDim 3;
+
+icoSteps 200;
+
+solver NewtonArmijo;
+NewtonTol 5.e-7;
+NewtonMaxIter 100;
+JacobianDx 1.e-3;
+JacobianOrder 1;
+maxArmijoIter 10;
+sigma0 0.1;
+sigma1 0.5;
+alpha 1.e-4;
+
+GMREStol 1.e-6;
+GMRESmaxIter 1000;
+
+eigenvalues 100;
+eModes 20;
+adjointEigenvalues 100;
+adjointEModes 20;
+
+// ************************************************************************* //
